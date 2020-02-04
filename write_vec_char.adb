@@ -1,5 +1,6 @@
 with Ada.Containers.Functional_Maps;
 with Ada.Containers.Functional_Vectors;
+use Ada.Containers;
 
 procedure Write_Vec_Char with SPARK_Mode is
 
@@ -53,7 +54,9 @@ procedure Write_Vec_Char with SPARK_Mode is
    pragma Import (C, My_Write, "mywrite");
 
    procedure Safe_Write (Fd : Natural; S : String; Has_Written : out Integer)
-     with Post =>
+     with Pre =>
+       (for all K of Contents => Length (Get (Contents, K)) < Count_Type'Last),
+     Post =>
        (case Has_Written is
           when -1                =>
             Contents = Contents'Old and then Get_Errno /= ADA_EINTR,
@@ -66,7 +69,8 @@ procedure Write_Vec_Char with SPARK_Mode is
             Has_Key (Contents, Fd)
               and then
             M.Same_Keys (Contents, Contents'Old)
-              and then
+             and then
+
             Get (Contents, Fd) = Add (Get (Contents'Old, Fd), S (S'First))
         and then
             M.Elements_Equal_Except (Contents,

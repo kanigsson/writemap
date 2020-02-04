@@ -24,9 +24,13 @@ procedure Write with SPARK_Mode is
 
    function Get_Errno return Integer is (Error_State) with Global => Error_State;
 
+   function Append (A, B : Str) return Str is
+     (if Integer'Last - B'Length < A'Length then A
+      else A & B);
+
    Contents : M.Map with Ghost;
 
-   procedure My_Write (Fd : Natural; S : String; Has_Written : out Integer)
+   procedure My_Write (Fd : Natural; S : Str; Has_Written : out Integer)
    with Global => (In_Out => (Error_State, Contents)),
      Post =>
        (case Has_Written is
@@ -44,7 +48,7 @@ procedure Write with SPARK_Mode is
             M.Same_Keys (Contents, Contents'Old)
               and then
             Get (Contents, Fd)
-            = Get (Contents'Old, Fd) & S (S'First .. S'First + Has_Written - 1)
+            = Append (Get (Contents'Old, Fd), S)
         and then
             M.Elements_Equal_Except (Contents,
                                      Contents'Old,
@@ -53,7 +57,7 @@ procedure Write with SPARK_Mode is
 
    pragma Import (C, My_Write, "mywrite");
 
-   procedure Safe_Write (Fd : Natural; S : String; Has_Written : out Integer)
+   procedure Safe_Write (Fd : Natural; S : Str; Has_Written : out Integer)
      with Post =>
        (case Has_Written is
           when -1                =>
@@ -68,8 +72,8 @@ procedure Write with SPARK_Mode is
               and then
             M.Same_Keys (Contents, Contents'Old)
               and then
-            Get (Contents, Fd)
-            = Get (Contents'Old, Fd) & S (S'First .. S'First + Has_Written - 1)
+          Get (Contents, Fd)
+            = Append (Get (Contents'Old, Fd), S)
         and then
             M.Elements_Equal_Except (Contents,
                                      Contents'Old,
@@ -77,7 +81,7 @@ procedure Write with SPARK_Mode is
           when others            => False);
 
 
-   procedure Safe_Write (Fd : Natural; S : String; Has_Written : out Integer) is
+   procedure Safe_Write (Fd : Natural; S : Str; Has_Written : out Integer) is
       Contents_Start : M.Map := Contents with Ghost;
    begin
       loop
