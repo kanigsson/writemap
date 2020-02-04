@@ -1,6 +1,6 @@
 with Ada.Containers.Functional_Maps;
 
-procedure Write with SPARK_Mode is
+procedure Write_String with SPARK_Mode is
 
    Error_State : Integer := 0;
 
@@ -83,6 +83,6 @@ procedure Write with SPARK_Mode is
 begin
    null;
 
-end Write;
+end Write_String;
 
 
