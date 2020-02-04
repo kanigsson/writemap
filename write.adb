@@ -78,8 +78,10 @@ procedure Write with SPARK_Mode is
 
 
    procedure Safe_Write (Fd : Natural; S : String; Has_Written : out Integer) is
+      Contents_Start : M.Map := Contents with Ghost;
    begin
       loop
+         pragma Loop_Invariant (Contents = Contents_Start);
          My_Write (Fd, S, Has_Written);
          exit when (Has_Written < 0 and then Get_Errno /= ADA_EINTR)
                       or else
