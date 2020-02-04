@@ -28,6 +28,13 @@ procedure Write with SPARK_Mode is
      (if Integer'Last - B'Length < A'Length then A
       else A & B);
 
+   function Is_Append (A, B, C : Str) return Boolean is
+     (C'Length = (if Integer'Last - B'Length < A'Length then A'Length
+                  else A'Length + B'Length)
+      and then
+        (for all I in C'Range =>
+              C (I) = (if I <= A'Length then A (I) else B (I - A'Length))));
+
    Contents : M.Map with Ghost;
 
    procedure My_Write (Fd : Natural; S : Str; Has_Written : out Integer)
@@ -47,8 +54,7 @@ procedure Write with SPARK_Mode is
               and then
             M.Same_Keys (Contents, Contents'Old)
               and then
-            Get (Contents, Fd)
-            = Append (Get (Contents'Old, Fd), S)
+            Is_Append (Get (Contents'Old, Fd), S, Get (Contents, Fd))
         and then
             M.Elements_Equal_Except (Contents,
                                      Contents'Old,
@@ -71,9 +77,8 @@ procedure Write with SPARK_Mode is
             Has_Key (Contents, Fd)
               and then
             M.Same_Keys (Contents, Contents'Old)
-              and then
-          Get (Contents, Fd)
-            = Append (Get (Contents'Old, Fd), S)
+        and then
+          Is_Append (Get (Contents'Old, Fd), S, Get (Contents, Fd))
         and then
             M.Elements_Equal_Except (Contents,
                                      Contents'Old,
